@@ -1,0 +1,3 @@
+[submodule "mollia_bullet/core/bullet"]
+	path = mollia_bullet/core/bullet
+	url = https://github.com/bulletphysics/bullet3
