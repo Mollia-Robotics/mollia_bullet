@@ -685,7 +685,7 @@ PyType_Slot BIRigidBody_slots[] = {
 	{Py_tp_methods, BIRigidBody_methods},
 	{Py_tp_getset, BIRigidBody_getset},
 	{Py_tp_members, BIRigidBody_members},
-	{Py_tp_dealloc, BIRigidBody_dealloc},
+	{Py_tp_dealloc, (void *)BIRigidBody_dealloc},
 	{0},
 };
 

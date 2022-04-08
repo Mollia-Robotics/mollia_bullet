@@ -428,7 +428,7 @@ PyMemberDef BIGroup_members[] = {
 PyType_Slot BIGroup_slots[] = {
 	{Py_tp_methods, BIGroup_methods},
 	{Py_tp_members, BIGroup_members},
-	{Py_tp_dealloc, BIGroup_dealloc},
+	{Py_tp_dealloc, (void *)BIGroup_dealloc},
 	{0},
 };
 

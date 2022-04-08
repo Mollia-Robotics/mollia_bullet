@@ -506,7 +506,7 @@ PyMemberDef BIConstraint_members[] = {
 PyType_Slot BIConstraint_slots[] = {
 	{Py_tp_methods, BIConstraint_methods},
 	{Py_tp_members, BIConstraint_members},
-	{Py_tp_dealloc, BIConstraint_dealloc},
+	{Py_tp_dealloc, (void *)BIConstraint_dealloc},
 	{0},
 };
 

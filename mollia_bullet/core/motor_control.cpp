@@ -214,7 +214,7 @@ PyMethodDef BIMotorControl_methods[] = {
 
 PyType_Slot BIMotorControl_slots[] = {
 	{Py_tp_methods, BIMotorControl_methods},
-	{Py_tp_dealloc, BIMotorControl_dealloc},
+	{Py_tp_dealloc, (void *)BIMotorControl_dealloc},
 	{0},
 };
 

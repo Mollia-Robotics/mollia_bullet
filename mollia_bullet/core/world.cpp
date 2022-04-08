@@ -528,7 +528,7 @@ PyType_Slot BIWorld_slots[] = {
 	{Py_tp_methods, BIWorld_methods},
 	{Py_tp_getset, BIWorld_getset},
 	{Py_tp_members, BIWorld_members},
-	{Py_tp_dealloc, BIWorld_dealloc},
+	{Py_tp_dealloc, (void *)BIWorld_dealloc},
 	{0},
 };
 
