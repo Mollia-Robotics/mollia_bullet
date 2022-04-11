@@ -170,7 +170,7 @@ core = Extension(
 
 setup(
     name='mollia_bullet',
-    version='1.0.0',
+    version='1.0.1',
     author='Mollia Zrt.',
     license='MIT',
     packages=['mollia_bullet'],
