@@ -175,8 +175,8 @@ core = Extension(
 )
 
 setup(
-    name='BulletInterface',
-    version='6.9.0',
+    name='mollia_bullet',
+    version='1.0.0',
     packages=['mollia_bullet'],
     ext_modules=[core],
     install_requires=['numpy'],
