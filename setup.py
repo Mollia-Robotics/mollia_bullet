@@ -177,6 +177,8 @@ core = Extension(
 setup(
     name='mollia_bullet',
     version='1.0.0',
+    author='Mollia Zrt.',
+    license='MIT',
     packages=['mollia_bullet'],
     ext_modules=[core],
     install_requires=['numpy'],
