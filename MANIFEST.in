@@ -1,0 +1,7 @@
+recursive-include mollia_bullet/core *.cpp *.hpp
+prune mollia_bullet/core/bullet
+recursive-include mollia_bullet/core/bullet/src *.cpp *.h
+include mollia_bullet/core/bullet/LICENSE.txt
+include mollia_bullet/core/bullet/README.md
+include README.md
+include LICENSE
