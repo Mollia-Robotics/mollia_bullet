@@ -6,17 +6,13 @@ from typing import List, Tuple, Dict, Any, Callable, Union
 
 StiffnessT = Tuple[float, float, bool]
 ConstraintT = Union['Hinge', 'Fixed']
-BodyT = Union['Box', 'Shpere']
+BodyT = Union['Box', 'Sphere']
 
 VecT = Tuple[float, float, float]
 QuatT = Tuple[float, float, float, float]
 BasisT = Tuple[float, float, float, float, float, float, float, float, float]
 ContactT = Tuple[BodyT, VecT, VecT, VecT, float, float]
 TransformT = Tuple[VecT, Union[QuatT, BasisT]]
-
-commit = _imp.commit
-
-__version__ = '6.9.0'
 
 
 class RBody:
