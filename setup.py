@@ -1,9 +1,3 @@
-import glob
-import os
-import re
-import subprocess
-import sys
-
 from setuptools import Extension, setup
 
 macros = [
