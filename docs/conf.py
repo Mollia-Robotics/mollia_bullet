@@ -4,7 +4,7 @@ author = 'Mollia Zrt.'
 
 release = '1.0.1'
 
-extensions = ['sphinx_rtd_theme']
+extensions = ['sphinx.ext.autodoc', 'sphinx_rtd_theme']
 
 templates_path = []
 exclude_patterns = []
