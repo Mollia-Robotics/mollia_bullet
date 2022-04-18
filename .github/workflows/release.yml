@@ -51,6 +51,8 @@ jobs:
 
       - name: wheels
         run: python -m cibuildwheel --output-dir package
+        env:
+          CIBW_SKIP: cp36-*
 
       - name: upload
         uses: actions/upload-artifact@v2
