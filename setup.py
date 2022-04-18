@@ -175,5 +175,5 @@ setup(
     license='MIT',
     packages=['mollia_bullet'],
     ext_modules=[core],
-    install_requires=['numpy'],
+    install_requires=[],
 )
