@@ -1,8 +1,6 @@
 mollia_bullet
 =============
 
-.. rubric:: Version - |version| - |commit|
-
 World
 -----
 
