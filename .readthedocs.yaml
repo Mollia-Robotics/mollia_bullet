@@ -8,6 +8,9 @@ build:
 sphinx:
    configuration: docs/conf.py
 
+submodules:
+  recursive: true
+
 python:
   install:
     - method: pip
