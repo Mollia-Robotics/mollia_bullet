@@ -9,6 +9,7 @@ sphinx:
    configuration: docs/conf.py
 
 submodules:
+  include: all
   recursive: true
 
 python:
