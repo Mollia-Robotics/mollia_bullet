@@ -24,4 +24,10 @@ setup(
     packages=['_mollia_bullet'],
     data_files=[('.', ['mollia_bullet.pyi'])],
     install_requires=['numpy'],
+    extras_require={
+        'visualization': [
+            'mollia_window',
+            'zengl',
+        ],
+    },
 )
