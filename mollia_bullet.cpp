@@ -29,7 +29,7 @@ struct Constraint {
     PyObject_HEAD
     RigidBody * parent;
     RigidBody * child;
-    btTypedConstraint * constraint;
+    btFixedConstraint * constraint;
 };
 
 struct Transform {
@@ -43,6 +43,7 @@ PyTypeObject * Constraint_type;
 PyTypeObject * Transform_type;
 
 PyObject * helper;
+PyObject * rotation_order_map;
 
 Transform * identity_transform;
 
@@ -352,22 +353,28 @@ RigidBody * World_meth_rigid_body(World * self, PyObject * args, PyObject * kwar
 }
 
 Constraint * World_meth_constraint(World * self, PyObject * args, PyObject * kwargs) {
-    static char * keywords[] = {"parent", "child", "parent_pivot", "child_pivot", "type", NULL};
+    static char * keywords[] = {"parent", "child", "parent_pivot", "child_pivot", "rotation_order", NULL};
     RigidBody * parent = NULL;
     RigidBody * child = NULL;
     Transform * parent_transform = identity_transform;
     Transform * child_transform = identity_transform;
-    PyObject * constraint_type = Py_None;
-    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "|O&O&O&O&O", keywords, optional_rigid_body, &parent, optional_rigid_body, &child, optional_transform, &parent_transform, optional_transform, &child_transform, &constraint_type)) {
+    PyObject * rotation_order = Py_None;
+    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "|O&O&O&O&O", keywords, optional_rigid_body, &parent, optional_rigid_body, &child, optional_transform, &parent_transform, optional_transform, &child_transform, &rotation_order)) {
         return NULL;
     }
     if (!child) {
         return NULL;
     }
-    btTypedConstraint * constraint = NULL;
-    if (constraint_type == Py_None) {
-        constraint = new btFixedConstraint(*parent->rigid_body, *child->rigid_body, parent_transform->transform, child_transform->transform);
+    RotateOrder rot = RO_XYZ;
+    if (rotation_order != Py_None) {
+        PyObject * value = PyDict_GetItem(rotation_order_map, rotation_order);
+        if (!value) {
+            return NULL;
+        }
+        rot = (RotateOrder)PyLong_AsLong(value);
     }
+    btFixedConstraint * constraint = new btFixedConstraint(*parent->rigid_body, *child->rigid_body, parent_transform->transform, child_transform->transform);
+    constraint->setRotationOrder(rot);
     self->world->addConstraint(constraint);
     Constraint * res = PyObject_New(Constraint, Constraint_type);
     Py_INCREF(parent);
@@ -376,6 +383,44 @@ Constraint * World_meth_constraint(World * self, PyObject * args, PyObject * kwa
     res->child = child;
     res->constraint = constraint;
     return res;
+}
+
+PyObject * Constraint_meth_configure(Constraint * self, PyObject * args, PyObject * kwargs) {
+    static char * keywords[] = {
+        "dof", "motor", "spring", "servo", "servo_target", "target_velocity", "max_motor_force", "stiffness",
+        "damping", "bounce", "lower_limit", "upper_limit", "equilibrium_point", NULL,
+    };
+
+    int dof;
+    int motor = false;
+    int spring = false;
+    int servo = false;
+    double servo_target = 0.0;
+    double target_velocity = 0.0;
+    double max_motor_force = 0.0;
+    double stiffness = 0.0;
+    double damping = 0.0;
+    double bounce = 0.0;
+    double lower_limit = 0.0;
+    double upper_limit = 0.0;
+    double equilibrium_point = 0.0;
+
+    self->constraint->setLimit(dof, lower_limit, upper_limit);
+    self->constraint->enableMotor(dof, !!motor);
+    self->constraint->enableSpring(dof, !!spring);
+    self->constraint->setServo(dof, !!servo);
+    self->constraint->setServoTarget(dof, servo_target);
+    self->constraint->setTargetVelocity(dof, servo_target);
+    self->constraint->setMaxMotorForce(dof, max_motor_force);
+    self->constraint->setStiffness(dof, stiffness);
+    self->constraint->setDamping(dof, damping);
+    self->constraint->setBounce(dof, bounce);
+    self->constraint->setEquilibriumPoint(dof, equilibrium_point);
+
+    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "I|pppddddddddd", keywords, &dof, &servo_target, &target_velocity, &max_motor_force, &stiffness, &damping, &bounce, &lower_limit, &upper_limit, &equilibrium_point)) {
+        return NULL;
+    }
+    Py_RETURN_NONE;
 }
 
 PyObject * World_meth_shapes(World * self) {
@@ -464,6 +509,7 @@ PyMethodDef RigidBody_methods[] = {
 };
 
 PyMethodDef Constraint_methods[] = {
+    {"configure", (PyCFunction)Constraint_meth_configure, METH_NOARGS, NULL},
     {},
 };
 
@@ -534,6 +580,13 @@ PyModuleDef module_def = {PyModuleDef_HEAD_INIT, "mollia_bullet", NULL, -1, modu
 extern "C" PyObject * PyInit_mollia_bullet() {
     PyObject * module = PyModule_Create(&module_def);
     helper = PyImport_ImportModule("_mollia_bullet");
+    rotation_order_map = PyDict_New();
+    PyDict_SetItemString(rotation_order_map, "xyz", PyLong_FromLong(RO_XYZ));
+    PyDict_SetItemString(rotation_order_map, "xzy", PyLong_FromLong(RO_XZY));
+    PyDict_SetItemString(rotation_order_map, "yxz", PyLong_FromLong(RO_YXZ));
+    PyDict_SetItemString(rotation_order_map, "yzx", PyLong_FromLong(RO_YZX));
+    PyDict_SetItemString(rotation_order_map, "zxy", PyLong_FromLong(RO_ZXY));
+    PyDict_SetItemString(rotation_order_map, "zyx", PyLong_FromLong(RO_ZYX));
     World_type = (PyTypeObject *)PyType_FromSpec(&World_spec);
     RigidBody_type = (PyTypeObject *)PyType_FromSpec(&RigidBody_spec);
     Constraint_type = (PyTypeObject *)PyType_FromSpec(&Constraint_spec);
