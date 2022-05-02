@@ -22,5 +22,6 @@ setup(
     license='MIT',
     ext_modules=[core],
     packages=['_mollia_bullet'],
+    data_files=[('.', ['mollia_bullet.pyi'])],
     install_requires=['numpy'],
 )
