@@ -20,19 +20,21 @@ def capsule(radius, height):
     return {'type': 'capsule', 'radius': radius, 'height': height * 2.0}
 
 
-world = mb.world(gravity=(1.0, 2.0, -10.0))
+world = mb.world(gravity=(0.0, 0.01, -10.0))
 
 ball = world.rigid_body(mass=0.0, shape=sphere(0.1), transform=move(z=2.0), group=0, mask=0)
-capsule_1 = world.rigid_body(mass=1.0, shape=capsule(0.05, 0.3), transform=move(z=1.7), group=0, mask=0)
-capsule_2 = world.rigid_body(mass=1.0, shape=capsule(0.05, 0.3), transform=move(z=1.1), group=0, mask=0)
+capsule_1 = world.rigid_body(mass=1.0, shape=capsule(0.05, 0.3), transform=move(z=2.3), group=0, mask=0)
+capsule_2 = world.rigid_body(mass=1.0, shape=capsule(0.05, 0.3), transform=move(z=2.9), group=0, mask=0)
 
-constraint_1 = world.constraint(ball, capsule_1, child_pivot=move(z=0.3))
-constraint_2 = world.constraint(capsule_1, capsule_2, move(z=-0.3), move(z=0.3))
+constraint_1 = world.constraint(ball, capsule_1, child_pivot=move(z=-0.3), rotation_order='zyx')
+constraint_2 = world.constraint(capsule_1, capsule_2, move(z=0.3), move(z=-0.3), rotation_order='zyx')
 
-constraint_1.configure(4, lower_limit=1.0)
-constraint_1.configure(5, lower_limit=1.0)
-constraint_2.configure(4, lower_limit=1.0)
-constraint_2.configure(5, lower_limit=1.0)
+constraint_1.configure(3, lower_limit=1.0)
+# constraint_1.configure(4, lower_limit=1.0)
+# constraint_1.configure(5, lower_limit=1.0)
+constraint_2.configure(3, lower_limit=1.0)
+# constraint_2.configure(4, lower_limit=1.0)
+# constraint_2.configure(5, lower_limit=1.0)
 
 wnd = mollia_window.main_window()
 renderer = Renderer(world)
