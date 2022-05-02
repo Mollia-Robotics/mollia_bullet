@@ -10,6 +10,7 @@ core = Extension(
         'bullet/src/btBulletDynamicsAll.cpp',
         'bullet/src/btLinearMathAll.cpp',
     ],
+    extra_compile_args=['-fpermissive'],
 )
 
 setup(
