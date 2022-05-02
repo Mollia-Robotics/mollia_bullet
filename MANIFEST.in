@@ -1,0 +1,5 @@
+recursive-include bullet/src *.cpp *.h
+include bullet/LICENSE.txt
+include bullet/README.md
+include README.md
+include LICENSE
