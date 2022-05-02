@@ -6,9 +6,14 @@ core = Extension(
     define_macros=[('BT_USE_DOUBLE_PRECISION', None)],
     sources=[
         'mollia_bullet.cpp',
-        'bullet/src/btBulletCollisionAll.cpp',
-        'bullet/src/btBulletDynamicsAll.cpp',
-        'bullet/src/btLinearMathAll.cpp',
+        # 'bullet/src/btBulletCollisionAll.cpp',
+        # 'bullet/src/btBulletDynamicsAll.cpp',
+        # 'bullet/src/btLinearMathAll.cpp',
+    ],
+    extra_objects=[
+        'build/temp.win-amd64-3.10/Release/bullet/src/btBulletCollisionAll.obj',
+        'build/temp.win-amd64-3.10/Release/bullet/src/btBulletDynamicsAll.obj',
+        'build/temp.win-amd64-3.10/Release/bullet/src/btLinearMathAll.obj',
     ],
 )
 
@@ -20,6 +25,6 @@ setup(
     maintainer_email='cprogrammer1994@gmail.com',
     license='MIT',
     ext_modules=[core],
-    py_modules=['_mollia_bullet'],
+    packages=['_mollia_bullet'],
     install_requires=['numpy'],
 )
