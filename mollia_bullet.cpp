@@ -29,6 +29,7 @@ struct Constraint {
     PyObject_HEAD
     RigidBody * parent;
     RigidBody * child;
+    btTypedConstraint * constraint;
 };
 
 struct Transform {
@@ -351,22 +352,29 @@ RigidBody * World_meth_rigid_body(World * self, PyObject * args, PyObject * kwar
 }
 
 Constraint * World_meth_constraint(World * self, PyObject * args, PyObject * kwargs) {
-    static char * keywords[] = {"parent", "child", "parent_pivot", "child_pivot", NULL};
+    static char * keywords[] = {"parent", "child", "parent_pivot", "child_pivot", "type", NULL};
     RigidBody * parent = NULL;
     RigidBody * child = NULL;
     Transform * parent_transform = identity_transform;
     Transform * child_transform = identity_transform;
-    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "|O&O&O&O&", keywords, optional_rigid_body, &parent, optional_rigid_body, &child, optional_transform, &parent_transform, optional_transform, &child_transform)) {
+    PyObject * constraint_type = Py_None;
+    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "|O&O&O&O&O", keywords, optional_rigid_body, &parent, optional_rigid_body, &child, optional_transform, &parent_transform, optional_transform, &child_transform, &constraint_type)) {
         return NULL;
     }
     if (!child) {
         return NULL;
     }
+    btTypedConstraint * constraint = NULL;
+    if (constraint_type == Py_None) {
+        constraint = new btFixedConstraint(*parent->rigid_body, *child->rigid_body, parent_transform->transform, child_transform->transform);
+    }
+    self->world->addConstraint(constraint);
     Constraint * res = PyObject_New(Constraint, Constraint_type);
     Py_INCREF(parent);
     res->parent = parent;
     Py_INCREF(child);
     res->child = child;
+    res->constraint = constraint;
     return res;
 }
 
@@ -432,6 +440,12 @@ Transform * Transform_multiply(Transform * self, Transform * other) {
     return res;
 }
 
+Transform * RigidBody_get_transform(RigidBody * self) {
+    Transform * res = PyObject_New(Transform, Transform_type);
+    res->transform = self->rigid_body->getWorldTransform();
+    return res;
+}
+
 void default_dealloc(PyObject * self) {
     Py_TYPE(self)->tp_free(self);
 }
@@ -460,6 +474,11 @@ PyMethodDef Transform_methods[] = {
     {},
 };
 
+PyGetSetDef RigidBody_getset[] = {
+    {"transform", (getter)RigidBody_get_transform, NULL, NULL},
+    {},
+};
+
 PyMemberDef RigidBody_members[] = {
     {"mass", T_DOUBLE, offsetof(RigidBody, mass), READONLY, NULL},
     {},
@@ -479,6 +498,7 @@ PyType_Slot World_slots[] = {
 
 PyType_Slot RigidBody_slots[] = {
     {Py_tp_methods, RigidBody_methods},
+    {Py_tp_getset, RigidBody_getset},
     {Py_tp_members, RigidBody_members},
     {Py_tp_dealloc, default_dealloc},
     {},
