@@ -6,14 +6,9 @@ core = Extension(
     define_macros=[('BT_USE_DOUBLE_PRECISION', None)],
     sources=[
         'mollia_bullet.cpp',
-        # 'bullet/src/btBulletCollisionAll.cpp',
-        # 'bullet/src/btBulletDynamicsAll.cpp',
-        # 'bullet/src/btLinearMathAll.cpp',
-    ],
-    extra_objects=[
-        'build/temp.win-amd64-3.10/Release/bullet/src/btBulletCollisionAll.obj',
-        'build/temp.win-amd64-3.10/Release/bullet/src/btBulletDynamicsAll.obj',
-        'build/temp.win-amd64-3.10/Release/bullet/src/btLinearMathAll.obj',
+        'bullet/src/btBulletCollisionAll.cpp',
+        'bullet/src/btBulletDynamicsAll.cpp',
+        'bullet/src/btLinearMathAll.cpp',
     ],
 )
 
