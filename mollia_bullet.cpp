@@ -405,6 +405,16 @@ PyObject * Constraint_meth_configure(Constraint * self, PyObject * args, PyObjec
     double upper_limit = 0.0;
     double equilibrium_point = 0.0;
 
+    int args_ok = PyArg_ParseTupleAndKeywords(
+        args, kwargs, "I|pppddddddddd", keywords,
+        &dof, &motor, &spring, &servo, &servo_target, &target_velocity, &max_motor_force, &stiffness, &damping,
+        &bounce, &lower_limit, &upper_limit, &equilibrium_point
+    );
+
+    if (!args_ok) {
+        return NULL;
+    }
+
     self->constraint->setLimit(dof, lower_limit, upper_limit);
     self->constraint->enableMotor(dof, !!motor);
     self->constraint->enableSpring(dof, !!spring);
@@ -417,9 +427,6 @@ PyObject * Constraint_meth_configure(Constraint * self, PyObject * args, PyObjec
     self->constraint->setBounce(dof, bounce);
     self->constraint->setEquilibriumPoint(dof, equilibrium_point);
 
-    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "I|pppddddddddd", keywords, &dof, &servo_target, &target_velocity, &max_motor_force, &stiffness, &damping, &bounce, &lower_limit, &upper_limit, &equilibrium_point)) {
-        return NULL;
-    }
     Py_RETURN_NONE;
 }
 
@@ -509,7 +516,7 @@ PyMethodDef RigidBody_methods[] = {
 };
 
 PyMethodDef Constraint_methods[] = {
-    {"configure", (PyCFunction)Constraint_meth_configure, METH_NOARGS, NULL},
+    {"configure", (PyCFunction)Constraint_meth_configure, METH_VARARGS | METH_KEYWORDS, NULL},
     {},
 };
 
