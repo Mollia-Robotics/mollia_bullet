@@ -82,12 +82,20 @@ class Constraint:
     parent: RigidBody
     child: RigidBody
 
+    def configure(self, dof: int, motor: bool = False, spring: bool = False, servo: bool = False,
+        servo_target: float = 0.0, target_velocity: float = 0.0, max_motor_force: float = 0.0, stiffness: float = 0.0,
+        damping: float = 0.0, bounce: float = 0.0, lower_limit: float = 0.0, upper_limit: float = 0.0,
+        equilibrium_point: float = 0.0) -> None: ...
+
 
 class World:
     def rigid_body(self, mass: float = 0.0, shape: Shape | None = None, transform: Transform = IDENTITY,
-        friction: float = 0.0, spinning_friction: float = 0.0, rolling_friction: float = 0.0) -> RigidBody: ...
+        friction: float = 0.0, spinning_friction: float = 0.0, rolling_friction: float = 0.0,
+        group: int = 1, mask: int = 1) -> RigidBody: ...
     def constraint(self, parent: RigidBody, child: RigidBody, parent_pivot: Transform = IDENTITY,
         child_pivot: Transform = IDENTITY, type: str | None = None) -> Constraint: ...
 
 
 def world(gravity: Vector) -> World: ...
+
+def transform(position: Vector, rotation: Quaternion) -> Transform: ...
