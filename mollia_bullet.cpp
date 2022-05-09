@@ -37,10 +37,18 @@ struct Transform {
     btTransform transform;
 };
 
+struct OldHinge {
+    PyObject_HEAD
+    RigidBody * parent;
+    RigidBody * child;
+    btHingeConstraint * hinge;
+};
+
 PyTypeObject * World_type;
 PyTypeObject * RigidBody_type;
 PyTypeObject * Constraint_type;
 PyTypeObject * Transform_type;
+PyTypeObject * OldHinge_type;
 
 PyObject * helper;
 PyObject * rotation_order_map;
@@ -385,6 +393,75 @@ Constraint * World_meth_constraint(World * self, PyObject * args, PyObject * kwa
     return res;
 }
 
+btVector3 get_vector(PyObject * obj) {
+    PyObject * seq = PySequence_Fast(obj, "not iterable");
+    if (PySequence_Fast_GET_SIZE(seq) == 3) {
+        btVector3 res = btVector3(
+            PyFloat_AsDouble(PySequence_Fast_GET_ITEM(seq, 0)),
+            PyFloat_AsDouble(PySequence_Fast_GET_ITEM(seq, 1)),
+            PyFloat_AsDouble(PySequence_Fast_GET_ITEM(seq, 2))
+        );
+        Py_DECREF(seq);
+        return res;
+    }
+}
+
+OldHinge * World_meth_hinge(World * self, PyObject * args, PyObject * kwargs) {
+    static char * keywords[] = {"parent", "child", "pivot", "axis", NULL};
+
+    RigidBody * parent;
+    RigidBody * child;
+    PyObject * pivot;
+    PyObject * axis;
+
+    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "|O&O&OO", keywords, optional_rigid_body, &parent, optional_rigid_body, &child, &pivot, &axis)) {
+        return NULL;
+    }
+
+    btTransform transform_A = parent->rigid_body->getCenterOfMassTransform();
+    btTransform transform_B = child->rigid_body->getCenterOfMassTransform();
+
+    btVector3 constraint_pivot;
+    btVector3 constraint_axis;
+
+    if (pivot == Py_None) {
+        constraint_pivot = transform_A.getOrigin();
+    } else {
+        constraint_pivot = get_vector(pivot);
+    }
+
+    if (axis == Py_None) {
+        btVector3 top = (transform_A.getOrigin() - constraint_pivot).normalized();
+        btVector3 toc = (transform_B.getOrigin() - constraint_pivot).normalized();
+        constraint_axis = top.cross(toc);
+    } else {
+        constraint_axis = get_vector(axis);
+    }
+
+    if (PyErr_Occurred()) {
+        return 0;
+    }
+
+    constraint_axis.normalize();
+
+    btVector3 pivot_A = transform_A.getBasis().solve33(constraint_pivot - transform_A.getOrigin());
+    btVector3 pivot_B = transform_B.getBasis().solve33(constraint_pivot - transform_B.getOrigin());
+
+    btVector3 axis_A = transform_A.getBasis().solve33(constraint_axis);
+    btVector3 axis_B = transform_B.getBasis().solve33(constraint_axis);
+
+    btHingeConstraint * hinge = new btHingeConstraint(*parent->rigid_body, *child->rigid_body, pivot_A, pivot_B, axis_A, axis_B);
+    self->world->addConstraint(hinge);
+
+    OldHinge * res = PyObject_New(OldHinge, OldHinge_type);
+    Py_INCREF(parent);
+    res->parent = parent;
+    Py_INCREF(child);
+    res->child = child;
+    res->hinge = hinge;
+    return res;
+}
+
 PyObject * Constraint_meth_configure(Constraint * self, PyObject * args, PyObject * kwargs) {
     static char * keywords[] = {
         "dof", "motor", "spring", "servo", "servo_target", "target_velocity", "max_motor_force", "stiffness",
@@ -505,6 +582,7 @@ void default_dealloc(PyObject * self) {
 PyMethodDef World_methods[] = {
     {"rigid_body", (PyCFunction)World_meth_rigid_body, METH_VARARGS | METH_KEYWORDS, NULL},
     {"constraint", (PyCFunction)World_meth_constraint, METH_VARARGS | METH_KEYWORDS, NULL},
+    {"hinge", (PyCFunction)World_meth_hinge, METH_VARARGS | METH_KEYWORDS, NULL},
     {"shapes", (PyCFunction)World_meth_shapes, METH_NOARGS, NULL},
     {"frame", (PyCFunction)World_meth_frame, METH_NOARGS, NULL},
     {"update", (PyCFunction)World_meth_update, METH_NOARGS, NULL},
@@ -571,10 +649,16 @@ PyType_Slot Transform_slots[] = {
     {},
 };
 
+PyType_Slot OldHinge_slots[] = {
+    {Py_tp_dealloc, default_dealloc},
+    {},
+};
+
 PyType_Spec World_spec = {"mymodule.World", sizeof(World), 0, Py_TPFLAGS_DEFAULT, World_slots};
 PyType_Spec RigidBody_spec = {"mymodule.RigidBody", sizeof(RigidBody), 0, Py_TPFLAGS_DEFAULT, RigidBody_slots};
 PyType_Spec Constraint_spec = {"mymodule.Constraint", sizeof(Constraint), 0, Py_TPFLAGS_DEFAULT, Constraint_slots};
 PyType_Spec Transform_spec = {"mymodule.Transform", sizeof(Transform), 0, Py_TPFLAGS_DEFAULT, Transform_slots};
+PyType_Spec OldHinge_spec = {"mymodule.OldHinge", sizeof(OldHinge), 0, Py_TPFLAGS_DEFAULT, OldHinge_slots};
 
 PyMethodDef module_methods[] = {
     {"transform", (PyCFunction)meth_transform, METH_VARARGS | METH_KEYWORDS, NULL},
@@ -598,6 +682,7 @@ extern "C" PyObject * PyInit_mollia_bullet() {
     RigidBody_type = (PyTypeObject *)PyType_FromSpec(&RigidBody_spec);
     Constraint_type = (PyTypeObject *)PyType_FromSpec(&Constraint_spec);
     Transform_type = (PyTypeObject *)PyType_FromSpec(&Transform_spec);
+    OldHinge_type = (PyTypeObject *)PyType_FromSpec(&OldHinge_spec);
     identity_transform = PyObject_New(Transform, Transform_type);
     identity_transform->transform = btTransform(btQuaternion(0.0, 0.0, 0.0, 1.0), {0.0, 0.0, 0.0});
     return module;
